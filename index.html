@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Appointment App</title>
+</head>
+<body>
+    <h1>Booking Appointment App</h1>
+    <form onsubmit="addUser(event)">
+        Name: <br> <input type="text" name="username" id="username"> <br>
+        Phone Number: <br> <input type="text" name="phonenumber" id="phonenumber"> <br>
+        Email: <br> <input type="text" name="email" id="email"> <br> <br>
+        <input type="submit" value="Add User">
+    </form>
+    <ul id="userList"></ul>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script>
+        async function addUser(event){
+            try{
+                event.preventDefault();
+                const obj = {
+                    username : event.target.username.value,
+                    phonenumber : event.target.phonenumber.value,
+                    email : event.target.email.value
+                };
+                const response = await axios.post('http://localhost:5000/user/add-user',obj);
+                showUserOnScreen(response.data.newAddedUser);
+            } catch(error){
+                console.log(error);
+                document.body.innerHTML = document.body.innerHTML + '<h4>Something went wrong!</h4>'
+            }
+        }
+        function showUserOnScreen(obj){
+            const parentElement = document.getElementById('userList');
+            const childElement = `<li id=${obj.id}> ${obj.username} - ${obj.phonenumber} - ${obj.email}
+                <button onclick="deleteUser('${obj.id}')">Delete
+                </li>`
+                parentElement.innerHTML = parentElement.innerHTML + childElement;
+        }
+
+        async function deleteUser(userID){
+            try{
+                await axios.delete(`http://localhost:5000/user/delete-user/${userID}`);
+                removeUserFromScreen(userID);
+            } catch(error){
+                console.log(error);
+                document.body.innerHTML = document.body.innerHTML + '<h4>Something went wrong!</h4>'
+            }
+        }
+
+        function removeUserFromScreen(userID){
+            const parentElement = document.getElementById('userList');
+            const childElementToBeRemoved = document.getElementById(userID);
+            if(childElementToBeRemoved){
+                parentElement.removeChild(childElementToBeRemoved);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded",async ()=>{
+            try{
+                const response = await axios.get('http://localhost:5000/user/get-user');
+                for(var i=0;i<response.data.allUsers.length;i++){
+                    showUserOnScreen(response.data.allUsers[i]);
+                }
+            } catch(error){
+                console.log(error);
+                document.innerHTML = document.innerHTML + '<h4>Something went wrong!</h4>'
+            }
+        });
+    </script>
+</body>
+</html>
